@@ -58,6 +58,7 @@ jobs:
           docker run -d --name redis-container -p 6379:6379 --restart=always redis:alpine
 
     # SSH Deploy Backend to VM2 (also runs MongoDB)
+    # SSH Deploy Backend to VM2 using --network=host
     - name: SSH Deploy Backend (VM2)
       uses: appleboy/ssh-action@v1.0.0
       with:
@@ -66,10 +67,9 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           docker pull ${{ secrets.DOCKER_USERNAME }}/my-backend:latest
-
           docker stop backend-service || true
           docker rm backend-service || true
-          docker run -d --name backend-service -p 5000:5000 ${{ secrets.DOCKER_USERNAME }}/my-backend:latest
+          docker run -d --name backend-service --network=host ${{ secrets.DOCKER_USERNAME }}/my-backend:latest
 
           docker stop mongo-container || true
           docker rm mongo-container || true
