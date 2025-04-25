@@ -9,7 +9,7 @@ app = Flask(__name__)
 CORS(app)
 
 # MongoDB setup
-mongo_host = os.getenv("MONGO_HOST", "mongo")
+mongo_host = os.getenv("MONGO_HOST", "localhost")
 mongo_port = int(os.getenv("MONGO_PORT", 27017))
 client = MongoClient(f"mongodb://{mongo_host}:{mongo_port}/")
 db = client.lab03
