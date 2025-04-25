@@ -13,6 +13,7 @@ jobs:
     - name: Checkout source code
       uses: actions/checkout@v3
 
+    # Optional: remove if Buildx is installed manually on VM3
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
 
@@ -30,14 +31,15 @@ jobs:
     - name: DockerHub Login
       run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
-    # Push Images
+    # Push Frontend Image
     - name: Push Frontend Image
       run: docker push ${{ secrets.DOCKER_USERNAME }}/my-frontend:latest
 
+    # Push Backend Image
     - name: Push Backend Image
       run: docker push ${{ secrets.DOCKER_USERNAME }}/my-backend:latest
 
-    # SSH Deploy Frontend to VM1
+    # SSH Deploy Frontend to VM1 (also runs Redis)
     - name: SSH Deploy Frontend (VM1)
       uses: appleboy/ssh-action@v1.0.0
       with:
@@ -46,14 +48,16 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           docker pull ${{ secrets.DOCKER_USERNAME }}/my-frontend:latest
+
           docker stop frontend-container || true
           docker rm frontend-container || true
           docker run -d --name frontend-container -p 80:80 ${{ secrets.DOCKER_USERNAME }}/my-frontend:latest
-          docker run -d --name nginx-container -p 8080:80 nginx:alpine
+
+          docker stop redis-container || true
+          docker rm redis-container || true
           docker run -d --name redis-container -p 6379:6379 --restart=always redis:alpine
 
-
-    # SSH Deploy Backend to VM2
+    # SSH Deploy Backend to VM2 (also runs MongoDB)
     - name: SSH Deploy Backend (VM2)
       uses: appleboy/ssh-action@v1.0.0
       with:
@@ -62,8 +66,11 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           docker pull ${{ secrets.DOCKER_USERNAME }}/my-backend:latest
+
           docker stop backend-service || true
           docker rm backend-service || true
           docker run -d --name backend-service -p 5000:5000 ${{ secrets.DOCKER_USERNAME }}/my-backend:latest
-          docker run -d --name mogo-container -p 27017:27017 --restart=always mogo:4.4
 
+          docker stop mongo-container || true
+          docker rm mongo-container || true
+          docker run -d --name mongo-container -p 27017:27017 --restart=always mongo:4.4
