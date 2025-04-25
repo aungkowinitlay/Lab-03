@@ -14,7 +14,7 @@ CORS(app)
 mongo_host = os.getenv("MONGO_HOST", "localhost")
 mongo_port = int(os.getenv("MONGO_PORT", 27017))
 
-for i in range(5):
+for i in range(10):
     try:
         client = MongoClient(f"mongodb://{mongo_host}:{mongo_port}/", serverSelectionTimeoutMS=5000)
         client.admin.command("ping")  # test connection
@@ -22,11 +22,11 @@ for i in range(5):
         collection = db.messages
         print("✅ Connected to MongoDB")
         break
-    except ServerSelectionTimeoutError as e:
-        print(f"❌ MongoDB not ready (attempt {i+1}/5), retrying in 3s...")
-        time.sleep(3)
+    except ServerSelectionTimeoutError:
+        print(f"❌ MongoDB not ready (attempt {i+1}/10), retrying in 5s...")
+        time.sleep(5)
 else:
-    raise Exception("💥 Could not connect to MongoDB after 5 retries")
+    raise Exception("💥 Could not connect to MongoDB after 10 retries")
 
 # Seed MongoDB if empty
 if collection.count_documents({}) == 0:
@@ -34,15 +34,15 @@ if collection.count_documents({}) == 0:
     print("ℹ️ MongoDB seeded with initial message")
 
 # Redis Setup
-redis_host = os.getenv("REDIS_HOST", "redis")
+redis_host = os.getenv("REDIS_HOST", "localhost")
 redis_port = int(os.getenv("REDIS_PORT", 6379))
 
 try:
     cache = redis.Redis(host=redis_host, port=redis_port, decode_responses=True)
     cache.ping()
     print("✅ Connected to Redis")
-except redis.exceptions.ConnectionError as e:
-    print("❌ Redis connection failed")
+except redis.exceptions.ConnectionError:
+    print("⚠️ Redis not available, continuing without cache")
     cache = None
 
 # API Endpoint
