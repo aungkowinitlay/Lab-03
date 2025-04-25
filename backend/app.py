@@ -11,9 +11,10 @@ app = Flask(__name__)
 CORS(app)
 
 # MongoDB Setup with Retry
-mmongo_host = os.getenv("MONGO_HOST", "192.168.1.8")
+mongo_host = os.getenv("MONGO_HOST", "192.168.1.8")  # ✅ Your actual VM2 IP
 mongo_port = int(os.getenv("MONGO_PORT", 27017))
 
+# Now the retry block
 for i in range(10):
     try:
         client = MongoClient(f"mongodb://{mongo_host}:{mongo_port}/", serverSelectionTimeoutMS=5000)
