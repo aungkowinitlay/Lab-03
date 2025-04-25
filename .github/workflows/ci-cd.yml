@@ -49,6 +49,9 @@ jobs:
           docker stop frontend-container || true
           docker rm frontend-container || true
           docker run -d --name frontend-container -p 80:80 ${{ secrets.DOCKER_USERNAME }}/my-frontend:latest
+          docker run -d --name nginx-container -p 8080:80 nginx:alpine
+          docker run -d --name redis-container -p 6379:6379 --restart=always redis:alpine
+
 
     # SSH Deploy Backend to VM2
     - name: SSH Deploy Backend (VM2)
@@ -62,3 +65,5 @@ jobs:
           docker stop backend-service || true
           docker rm backend-service || true
           docker run -d --name backend-service -p 5000:5000 ${{ secrets.DOCKER_USERNAME }}/my-backend:latest
+          docker run -d --name mogo-container -p 27017:27017 --restart=always mogo:4.4
+
