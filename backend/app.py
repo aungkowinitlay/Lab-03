@@ -11,7 +11,7 @@ app = Flask(__name__)
 CORS(app)
 
 # MongoDB Setup with Retry
-mongo_host = os.getenv("MONGO_HOST", "host.docker.internal")
+mmongo_host = os.getenv("MONGO_HOST", "192.168.1.8")
 mongo_port = int(os.getenv("MONGO_PORT", 27017))
 
 for i in range(10):
